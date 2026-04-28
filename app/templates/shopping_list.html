@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %}購物清單 - 食譜收藏系統{% endblock %}
+
+{% block content %}
+<div class="row mb-4 align-items-center">
+    <div class="col">
+        <h2>購物清單</h2>
+        <p class="text-muted">採買食材的貼身助手</p>
+    </div>
+    <div class="col-auto">
+        <form action="{{ url_for('shopping.clear_list') }}" method="post" onsubmit="return confirm('確定要清空清單嗎？');">
+            <button type="submit" class="btn btn-outline-danger btn-sm">
+                <i class="bi bi-trash"></i> 清空清單
+            </button>
+        </form>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="card">
+            <div class="card-body">
+                {% if items %}
+                <div class="list-group list-group-flush">
+                    {% for item in items %}
+                    <div class="list-group-item d-flex justify-content-between align-items-center py-3">
+                        <div class="form-check">
+                            <input class="form-check-input shopping-checkbox" type="checkbox" 
+                                   id="item-{{ item.id }}" 
+                                   {% if item.is_bought %}checked{% endif %}
+                                   onchange="toggleItem({{ item.id }})">
+                            <label class="form-check-label {% if item.is_bought %}text-decoration-line-through text-muted{% endif %}" 
+                                   for="item-{{ item.id }}" id="label-{{ item.id }}">
+                                <strong>{{ item.name }}</strong>
+                            </label>
+                        </div>
+                        <span class="badge bg-light text-dark border">{{ item.amount }} {{ item.unit }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="bi bi-cart-x display-4 text-muted"></i>
+                    <p class="mt-2 lead">清單空空如也。</p>
+                    <p class="text-muted small">您可以從食譜詳情頁點選「匯入食材」來填寫清單。</p>
+                    <a href="{{ url_for('main.index') }}" class="btn btn-primary btn-sm">去逛逛食譜</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function toggleItem(id) {
+    const label = document.getElementById('label-' + id);
+    fetch(`/shopping/${id}/toggle`, {
+        method: 'POST',
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            if (data.is_bought) {
+                label.classList.add('text-decoration-line-through', 'text-muted');
+            } else {
+                label.classList.remove('text-decoration-line-through', 'text-muted');
+            }
+        }
+    })
+    .catch(error => console.error('Error:', error));
+}
+</script>
+{% endblock %}

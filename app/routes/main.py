@@ -1,19 +1,16 @@
 from flask import Blueprint, render_template, request
+from app.models.recipe import Recipe
 
-main_bp = Blueprint('main', __name__)
+bp = Blueprint('main', __name__)
 
-@main_bp.route('/')
+@bp.route('/')
 def index():
-    """
-    首頁：顯示食譜列表，支援關鍵字搜尋。
-    Query args: q (search string)
-    """
-    pass
-
-@main_bp.route('/recommend')
-def recommend():
-    """
-    食材推薦頁面：根據使用者輸入的食材清單推薦食譜。
-    Query args: ingredients (comma separated)
-    """
-    pass
+    query = request.args.get('q', '')
+    if query:
+        # Simple search in title or tags
+        recipes = Recipe.query.filter(
+            (Recipe.title.contains(query)) | (Recipe.tags.contains(query))
+        ).all()
+    else:
+        recipes = Recipe.get_all()
+    return render_template('index.html', recipes=recipes, query=query)
